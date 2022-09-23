@@ -235,21 +235,25 @@ function Find-AttendanceRecord {
     )
 
     process {
-        $TBody = $Content -split "`n" | Select-String -Pattern 'tbody'
-        if (-not $TBody) {
-            throw 'No attendance found.'
+        $Lines = $Content -split 'jbc-text-reset'
+        $Match = $Lines | Select-String -Pattern 'year=(?<yyyy>\d{4})&month=(?<mm>\d{1,2})&day=(?<dd>\d{1,2})".+?</a></td><td></td>'
+        $Dates = $Match | ForEach-Object {
+            Get-Date -Year $_.Matches.Groups[1].Value -Month $_.Matches.Groups[2].Value -Day $_.Matches.Groups[3].Value -Hour 0 -Minute 0 -Second 0
         }
-        Write-Verbose ($TBody | Out-String)
-        $Times = $TBody -split 'jbc-text-reset' | ForEach-Object { ([regex]'(?<month>\d\d)/(?<day>\d\d)\((月|火|水|木|金|土|日)\)</a></td><td></td><td>11:00～15:00</td><td>(?<start>\d\d:\d\d)</td><td>(?<end>\d\d:\d\d)</td>').Matches($_) }
-        if (-not $Times) {
-            throw 'Cannot scrape attendance time entries.'
+        $Match = $Lines | Where-Object { $_ -notmatch 'jbc-table-footer' } | Select-String -Pattern '<td>(?<start>\d{2}:\d{2})</td><td>(?<end>\d{2}:\d{2})?</td>'
+        $Times = $Match | ForEach-Object {
+            [PSCustomObject]@{
+                Start = $_.Matches.Groups[1].Value
+                End = $_.Matches.Groups[2].Value
+            }
+        }
+        if ($Dates.Length -lt $Times.Length) {
+            Write-Error "Incorrect scraping. date count=$($Dates.Length) time count=$($Times.Length)"
+            return
         }
         $Result = @{}
-        $Times | ForEach-Object {
-            $Result.Add("$($Time.Groups['month'])/$($Time.Groups['day'])", [PSCustomObject]@{
-                    Start = $Time.Groups['start']
-                    End = $Time.Groups['end']
-                })
+        0..($Times.Length) | ForEach-Object {
+            $Result.Add($Dates[$_], $Times[$_])
         }
         return $Result
     }
@@ -304,14 +308,9 @@ function Test-CanRecord {
             'work_start' {
                 return -not [boolean] $Records[$Today].Start
             }
-            'work_end' {
-                return -not [boolean] $Records[$Today].End
-            }
-            'rest_start' {
-                return -not [boolean] $Records[$Today].Start
-            }
-            'rest_end' {
-                return -not [boolean] $Records[$Today].End
+            default {
+                # work_start, rest_start, rest_end
+                return ([boolean] $Records[$Today].Start) -and (-not [boolean] $Records[$Today].End)
             }
         }
     }
@@ -476,6 +475,13 @@ function Edit-TimeRecord {
 }
 
 function Send-JobCanBeginningWork {
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory)]
+        [ValidateNotNullOrEmpty()]
+        [string]
+        $AditGroupId
+    )
     begin {
         Write-Host 'try to begin work.'
     }
@@ -485,7 +491,7 @@ function Send-JobCanBeginningWork {
         Connect-JobCanCloudAttendance
         $Recordable = Test-CanRecord work_start
         if ($Recordable) {
-            Send-TimeRecord -TimeRecordEvent work_start
+            Send-TimeRecord -TimeRecordEvent work_start -AditGroupId $AditGroupId
         }
     }
 
@@ -500,6 +506,13 @@ function Send-JobCanBeginningWork {
 }
 
 function Send-JobCanFinishingWork {
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory)]
+        [ValidateNotNullOrEmpty()]
+        [string]
+        $AditGroupId
+    )
     begin {
         Write-Host 'try to finish work.'
     }
@@ -509,7 +522,7 @@ function Send-JobCanFinishingWork {
         Connect-JobCanCloudAttendance
         $Recordable = Test-CanRecord work_end
         if ($Recordable) {
-            Send-TimeRecord -TimeRecordEvent work_end
+            Send-TimeRecord -TimeRecordEvent work_end -AditGroupId $AditGroupId
         }
     }
 
@@ -524,6 +537,13 @@ function Send-JobCanFinishingWork {
 }
 
 function Send-JobCanBeginningRest {
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory)]
+        [ValidateNotNullOrEmpty()]
+        [string]
+        $AditGroupId
+    )
     begin {
         Write-Host 'try to begin rest.'
     }
@@ -533,7 +553,7 @@ function Send-JobCanBeginningRest {
         Connect-JobCanCloudAttendance
         $Recordable = Test-CanRecord rest_start
         if ($Recordable) {
-            Send-TimeRecord -TimeRecordEvent rest_start
+            Send-TimeRecord -TimeRecordEvent rest_start -AditGroupId $AditGroupId
         }
     }
 
@@ -548,6 +568,13 @@ function Send-JobCanBeginningRest {
 }
 
 function Send-JobCanFinishingRest {
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory)]
+        [ValidateNotNullOrEmpty()]
+        [string]
+        $AditGroupId
+    )
     begin {
         Write-Host 'try to finish rest.'
     }
@@ -557,7 +584,7 @@ function Send-JobCanFinishingRest {
         Connect-JobCanCloudAttendance
         $Recordable = Test-CanRecord rest_end
         if ($Recordable) {
-            Send-TimeRecord -TimeRecordEvent rest_end
+            Send-TimeRecord -TimeRecordEvent rest_end -AditGroupId $AditGroupId
         }
     }
 
@@ -634,7 +661,7 @@ function Get-JobCanAttendance {
         $Result = @()
         foreach ($Date in $Keys) {
             $Result += [PSCustomObject]@{
-                Date = $Date
+                Date = $Date.ToString('yyyy-MM-dd')
                 Start = $Records[$Date].Start
                 End = $Records[$Date].End
             }

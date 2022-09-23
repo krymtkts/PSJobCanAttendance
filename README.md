@@ -30,15 +30,15 @@ PowerShell v7 でのみ動作確認済みです。
 ### 出勤・退勤
 
 ```powershell
-# はじめに接続情報を登録します。現在インタラクティブ入力のみ対応
+# はじめに接続情報を登録します
 Set-JobCanAuthentication
 
-# 当月の勤怠を一覧(未実装)
+# 当月の勤怠実績を一覧する
 Get-JobCanAttendance
 # 出勤
-Send-JobCanBeginningWork
+Send-JobCanBeginningWork -AditGroupId 10
 # 退勤
-Send-JobCanFinishingWork
+Send-JobCanFinishingWork -AditGroupId 10
 # 出勤・退勤共に二重打刻の防止機能があります
 
 # 同一の打刻イベントであれば一括編集できます
@@ -59,7 +59,3 @@ Clear-JobCanAuthentication
 ## やろうとしていること
 
 - 実績の削除
-
-## 既知のバグ
-
-- 勤怠実績の取得が未実装
