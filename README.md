@@ -14,14 +14,6 @@ PowerShell v7 でのみ動作確認済みです。
 
 ## インストール
 
-### PowerShell Gallery から入手する
-
-[PowerShell Gallery | PSJobCanAttendance](https://www.powershellgallery.com/packages/PSJobCanAttendance/)
-
-```powershell
-Install-Module -Name PSJobCanAttendance
-```
-
 ### `Module` フォルダに配置する
 
 この repository を PowerShell の `Module` フォルダ配下に clone してください。
@@ -38,16 +30,19 @@ Install-Module -Name PSJobCanAttendance
 ### 出勤・退勤
 
 ```powershell
-# はじめに接続情報を登録します。現在インタラクティブ入力のみ対応。
+# はじめに接続情報を登録します。現在インタラクティブ入力のみ対応
 Set-JobCanAuthentication
 
-# 当月の勤怠を一覧
+# 当月の勤怠を一覧(未実装)
 Get-JobCanAttendance
 # 出勤
 Send-JobCanBeginningWork
 # 退勤
 Send-JobCanFinishingWork
 # 出勤・退勤共に二重打刻の防止機能があります
+
+# 同一の打刻イベントであれば一括編集できます
+@(12..16;20..22) | %{get-date "2022-09-$($_) 08:15:00+0900"} | Edit-JobCanAttendances -TimeRecordEvent work_start -AditGroupId 10
 ```
 
 ### 接続情報の初期化
@@ -63,9 +58,8 @@ Clear-JobCanAuthentication
 
 ## やろうとしていること
 
-- 休憩の打刻
-- 実績の編集
+- 実績の削除
 
 ## 既知のバグ
 
-- 打刻漏れがあると勤怠の一覧がずれる
+- 勤怠実績の取得が未実装

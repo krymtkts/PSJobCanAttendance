@@ -294,17 +294,23 @@ function Test-CanRecord {
     [CmdletBinding()]
     param (
         [Parameter(Mandatory)]
-        [ValidateSet('clock_in', 'clock_out')]
+        [ValidateSet('work_start', 'work_end', 'rest_start', 'rest_end')]
         $TimeRecordEvent
     )
     process {
         $Today = (Get-Date).Day
         $Records = Get-AttendanceRecord
         switch ($TimeRecordEvent) {
-            'clock_in' {
+            'work_start' {
                 return -not [boolean] $Records[$Today].Start
             }
-            'clock_out' {
+            'work_end' {
+                return -not [boolean] $Records[$Today].End
+            }
+            'rest_start' {
+                return -not [boolean] $Records[$Today].Start
+            }
+            'rest_end' {
                 return -not [boolean] $Records[$Today].End
             }
         }
@@ -382,7 +388,94 @@ function Send-TimeRecord {
     }
 }
 
-function Send-BeginningWork {
+function Edit-TimeRecord {
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory)]
+        [ValidateSet('work_start', 'work_end', 'rest_start', 'rest_end')]
+        $TimeRecordEvent,
+        [Parameter(Mandatory)]
+        [ValidateNotNullOrEmpty()]
+        [string]
+        $AditGroupId,
+        [Parameter(Mandatory,
+            Position = 0,
+            ValueFromPipeline,
+            ValueFromPipelineByPropertyName
+        )]
+        [ValidateNotNullOrEmpty()]
+        [DateTime]
+        $RecordTime,
+        [Parameter()]
+        [string]
+        $Notice = ''
+    )
+
+    begin {
+        Write-Verbose ($script:MySession | Out-String)
+        Write-Verbose ($script:JCSession | Out-String)
+
+        $ModifyPage = 'https://ssl.jobcan.jp/employee/adit/modify/'
+        $NewSessionParams = @{
+            Method = 'Get'
+            Uri = $ModifyPage
+            WebSession = $script:MySession
+        }
+        Write-Verbose ($NewSessionParams | Out-String)
+        try {
+            $Res = Invoke-WebRequest @NewSessionParams
+            $Match = $res.Content -split "`n" | Select-String -Pattern "name=`"token`".+value=`"(?<token>\S+)`">"
+            $Token = $Match[0].Matches.Groups[1].Value
+            $Match = $res.Content -split "`n" | Select-String -Pattern "client_id`".+?value=`"(?<client_id>\S+)`""
+            $ClientId = $Match[0].Matches.Groups[1].Value
+            $Match = $res.Content -split "`n" | Select-String -Pattern "employee_id`".+?value=`"(?<employee_id>\S+)`""
+            $EmployeeId = $Match[0].Matches.Groups[1].Value
+            Write-Verbose $Token
+            Write-Verbose $ClientId
+            Write-Verbose $EmployeeId
+        }
+        catch {
+            Write-Error "Failed to connect $ModifyPage. $_"
+            throw
+        }
+    }
+
+    process {
+        $TimeRecorder = 'https://ssl.jobcan.jp/employee/adit/insert'
+        $Body = @{
+            'token' = $Token
+            'year' = $RecordTime.Year
+            'month' = $RecordTime.Month
+            'day' = $RecordTime.Day
+            'client_id' = $ClientId
+            'employee_id' = $EmployeeId
+            'adit_item' = $TimeRecordEvent
+            'delete_minutes' = ''
+            'time' = $RecordTime.ToString('HHmm')
+            'group_id' = $AditGroupId
+            'notice' = $Notice
+            '_' = '' # ?
+        }
+        $RecordParams = @{
+            Method = 'Post'
+            Uri = $TimeRecorder
+            WebSession = $MySession
+            Body = $Body
+        }
+        Write-Verbose ($RecordParams | Out-String)
+        Write-Verbose ($Body | Out-String)
+        try {
+            $Res = Invoke-WebRequest @RecordParams
+            Write-Host "Succeed to send time record. $TimeRecordEvent $(Get-DateForDisplay $RecordTime)"
+        }
+        catch {
+            Write-Error "Failed to send time record. $TimeRecorder. $TimeRecordEvent"
+            throw
+        }
+    }
+}
+
+function Send-JobCanBeginningWork {
     begin {
         Write-Host 'try to begin work.'
     }
@@ -406,7 +499,7 @@ function Send-BeginningWork {
     }
 }
 
-function Send-FinishingWork {
+function Send-JobCanFinishingWork {
     begin {
         Write-Host 'try to finish work.'
     }
@@ -430,7 +523,7 @@ function Send-FinishingWork {
     }
 }
 
-function Send-BeginningRest {
+function Send-JobCanBeginningRest {
     begin {
         Write-Host 'try to begin rest.'
     }
@@ -454,7 +547,7 @@ function Send-BeginningRest {
     }
 }
 
-function Send-FinishingRest {
+function Send-JobCanFinishingRest {
     begin {
         Write-Host 'try to finish rest.'
     }
@@ -474,6 +567,51 @@ function Send-FinishingRest {
         }
         else {
             Write-Host 'Cannot record. It was already over. 😅'
+        }
+    }
+}
+
+function Edit-JobCanAttendances {
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory)]
+        [ValidateSet('work_start', 'work_end', 'rest_start', 'rest_end')]
+        $TimeRecordEvent,
+        [Parameter(Mandatory)]
+        [ValidateNotNullOrEmpty()]
+        [string]
+        $AditGroupId,
+        [Parameter(Mandatory,
+            Position = 0,
+            ValueFromPipeline,
+            ValueFromPipelineByPropertyName
+        )]
+        [ValidateNotNullOrEmpty()]
+        [DateTime[]]
+        $RecordTime,
+        [Parameter()]
+        [string]
+        $Notice = ''
+    )
+    begin {
+        Write-Host 'try to finish rest.'
+        Restore-JobCanAuthentication
+        Connect-JobCanCloudAttendance
+        $Params = @{
+            TimeRecordEvent = $TimeRecordEvent
+            AditGroupId = $AditGroupId
+            Notice = $Notice
+        }
+    }
+
+    process {
+        $RecordTime | Edit-TimeRecord @Params
+        $Completed = $true
+    }
+
+    end {
+        if ($Completed) {
+            Write-Host 'edit completed!! 👍'
         }
     }
 }

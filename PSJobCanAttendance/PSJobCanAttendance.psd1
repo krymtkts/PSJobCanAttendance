@@ -75,6 +75,7 @@
         'Clear-JobCanAuthentication',
         'Send-JobCanBeginningWork',
         'Send-JobCanFinishingWork',
+        'Edit-JobCanAttendances',
         'Get-JobCanAttendance'
     )
 
