@@ -27,21 +27,20 @@ PowerShell v7 でのみ動作確認済みです。
 
 ## 使い方
 
-### 出勤・退勤
-
 ```powershell
 # はじめに接続情報を登録します
+# ここで登録しなくても、ジョブカンにアクセスするコマンドを実行したときに、登録情報の入力が求められます
 Set-JobCanAuthentication
 
-# 当月の勤怠実績を一覧する
+# 当月の勤怠実績を一覧します
 Get-JobCanAttendance
-# 出勤
+# 出勤します
 Send-JobCanBeginningWork -AditGroupId 10
-# 退勤
+# 退勤します
 Send-JobCanFinishingWork -AditGroupId 10
 # 出勤・退勤共に二重打刻の防止機能があります
 
-# 同一の打刻イベントであれば一括編集できます
+# 時刻以外が同一の編集であれば一括編集できます
 @(12..16;20..22) | %{get-date "2022-09-$($_) 08:15:00+0900"} | Edit-JobCanAttendances -TimeRecordEvent work_start -AditGroupId 10
 ```
 
@@ -59,3 +58,4 @@ Clear-JobCanAuthentication
 ## やろうとしていること
 
 - 実績の削除
+- グループが 1 つの場合に group_id の入力をなくす
