@@ -132,9 +132,25 @@ function Get-RecordTime {
     }
 }
 
+function Set-JobCanOtpProvider {
+    param(
+        [Parameter(Mandatory)]
+        [ValidateNotNullOrEmpty()]
+        [scriptblock]
+        $OtpProvider
+    )
+    $script:OtpProvider = $OtpProvider
+}
+
+function Clear-JobCanOtpProvider {
+    param()
+    $script:OtpProvider = $null
+}
+
 function Connect-JobCanCloudAttendance {
     [CmdletBinding()]
-    param()
+    param(
+    )
     begin {
         if ($script:JCCredential) {
             Write-Host 'Trying to connect JobCan Attendance...'
@@ -179,28 +195,36 @@ function Connect-JobCanCloudAttendance {
             $Res = Invoke-WebRequest @LoginParams
             $AuthToken = Find-AuthToken -Content $Res.Content -Id edit_user
             Write-Verbose $AuthToken
+            $OtpRequired = [boolean]($res.Content | Where-Object { $_ -match '"user_otp_attempt"' })
         }
         catch {
             Write-Error "Failed to login $Login. $_"
             throw
         }
 
-        $LoginParams = @{
-            Method = 'Post'
-            Uri = $Login
-            WebSession = $script:MySession
-            Body = @{
-                'authenticity_token' = $token
-                'user[otp_attempt]' = Read-Host -Prompt 'Two-Factor Authentication: '
-                'commit' = 'Authenticate'
+        if ($OtpRequired) {
+            $LoginParams = @{
+                Method = 'Post'
+                Uri = $Login
+                WebSession = $script:MySession
+                Body = @{
+                    'authenticity_token' = $token
+                    'user[otp_attempt]' = if ($script:OtpProvider) {
+                        $script:OtpProvider.Invoke()
+                    }
+                    else {
+                        Read-Host -Prompt 'Two-Factor Authentication: '
+                    }
+                    'commit' = 'Authenticate'
+                }
             }
-        }
-        try {
-            $Res = Invoke-WebRequest @LoginParams
-        }
-        catch {
-            Write-Error "Failed to login $Login. $_"
-            throw
+            try {
+                $Res = Invoke-WebRequest @LoginParams
+            }
+            catch {
+                Write-Error "Failed to login $Login. $_"
+                throw
+            }
         }
 
         if ($Res.Content -match 'アカウント情報') {
