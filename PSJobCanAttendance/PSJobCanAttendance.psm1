@@ -32,9 +32,7 @@ function Set-JobCanAuthentication {
 
     if (-not $Credential) {
         $message = 'Please provide your JobCan user and password.'
-        if ($PsCmdlet.ParameterSetName -eq 'Cache') {
-            $message = $message + 'These credential is being cached across PowerShell sessions. To clear caching, call Clear-JobCanAuthentication.'
-        }
+        $message = $message + "These credential is being cached into $script:JCCredentialPath. To clear caching, call Clear-JobCanAuthentication."
         $Credential = Get-Credential -Message $message
     }
     $script:JCCredential = [JCCredentialStore]::new(
@@ -645,7 +643,7 @@ function Edit-JobCanAttendances {
         $Notice = ''
     )
     begin {
-        Write-Host 'try to finish rest.'
+        Write-Host 'start editing.'
         Restore-JobCanAuthentication
         Connect-JobCanCloudAttendance
         $Params = @{
@@ -662,7 +660,7 @@ function Edit-JobCanAttendances {
 
     end {
         if ($Completed) {
-            Write-Host 'edit completed!! 👍'
+            Write-Host 'editing completed!! 👍'
         }
     }
 }
