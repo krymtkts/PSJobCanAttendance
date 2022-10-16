@@ -274,8 +274,10 @@ function Find-AttendanceRecord {
             return
         }
         $Result = @{}
-        0..($Times.Length) | ForEach-Object {
-            $Result.Add($Dates[$_], $Times[$_])
+        if ($Times.Length -gt 0) {
+            0..($Times.Length) | ForEach-Object {
+                $Result.Add($Dates[$_], $Times[$_])
+            }
         }
         return $Result
     }
@@ -310,7 +312,7 @@ function Get-AttendanceRecord {
             return $Records
         }
         catch {
-            Write-Error 'Failed to send time record.'
+            Write-Error 'Failed to get time record.'
             throw
         }
     }
@@ -331,7 +333,7 @@ function Test-CanRecord {
                 return -not [boolean] $Records[$Today].Start
             }
             default {
-                # work_start, rest_start, rest_end
+                # work_end, rest_start, rest_end
                 return ([boolean] $Records[$Today].Start) -and (-not [boolean] $Records[$Today].End)
             }
         }
@@ -679,15 +681,12 @@ function Get-JobCanAttendance {
         Restore-JobCanAuthentication
         Connect-JobCanCloudAttendance
         $Records = Get-AttendanceRecord
-        $Keys = $Records.Keys | Sort-Object
-        $Result = @()
-        foreach ($Date in $Keys) {
+        $Records.Keys | Sort-Object | ForEach-Object -Begin { $Result = @() } {
             $Result += [PSCustomObject]@{
                 Date = $Date.ToString('yyyy-MM-dd')
-                Start = $Records[$Date].Start
-                End = $Records[$Date].End
+                Start = $Records[$_].Start
+                End = $Records[$_].End
             }
-        }
-        $Result
+        } -End { $Result }
     }
 }

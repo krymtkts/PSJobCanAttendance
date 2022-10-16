@@ -31,6 +31,9 @@ PowerShell v7 でのみ動作確認済みです。
 # はじめに接続情報を登録します
 # ここで登録しなくても、ジョブカンにアクセスするコマンドを実行したときに、登録情報の入力が求められます
 Set-JobCanAuthentication
+# OTP を自動で取得するための設定
+# op コマンド(1Password)を利用している場合の例
+Set-JobCanOtpProvider -otpProvider {op item get $itemName --otp}
 
 # 当月の勤怠実績を一覧します
 Get-JobCanAttendance
@@ -59,3 +62,4 @@ Clear-JobCanAuthentication
 
 - 実績の削除
 - グループが 1 つの場合に group_id の入力をなくす
+- 当月以外の勤怠実績の一覧
