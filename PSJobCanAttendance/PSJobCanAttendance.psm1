@@ -422,7 +422,8 @@ function Send-TimeRecord {
 function Edit-TimeRecord {
     [CmdletBinding()]
     param (
-        [Parameter(Mandatory)]
+        [Parameter(Mandatory,
+            ValueFromPipelineByPropertyName)]
         [ValidateSet('work_start', 'work_end', 'rest_start', 'rest_end')]
         $TimeRecordEvent,
         [Parameter(Mandatory)]
@@ -633,7 +634,8 @@ function Send-JobCanFinishingRest {
 function Edit-JobCanAttendances {
     [CmdletBinding()]
     param (
-        [Parameter(Mandatory)]
+        [Parameter(Mandatory,
+            ValueFromPipelineByPropertyName)]
         [ValidateSet('work_start', 'work_end', 'rest_start', 'rest_end')]
         $TimeRecordEvent,
         [Parameter(Mandatory)]
@@ -657,14 +659,17 @@ function Edit-JobCanAttendances {
         Restore-JobCanAuthentication
         Connect-JobCanCloudAttendance
         $Params = @{
-            TimeRecordEvent = $TimeRecordEvent
             AditGroupId = $AditGroupId
             Notice = $Notice
         }
     }
 
     process {
-        $RecordTime | Edit-TimeRecord @Params
+        $RecordTime | ForEach-Object { [PSCustomObject]@{
+                TimeRecordEvent = $TimeRecordEvent
+                RecordTime = $_
+            }
+        } | Edit-TimeRecord @Params
         $Completed = $true
     }
 
