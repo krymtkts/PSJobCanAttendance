@@ -264,9 +264,17 @@ function Find-AttendanceRecord {
         }
         $Match = $Lines | Where-Object { $_ -notmatch 'jbc-table-footer' } | Select-String -Pattern '<td>(?<start>\d{2}:\d{2})</td><td>(?<end>\d{2}:\d{2})?</td>'
         $Times = $Match | ForEach-Object {
-            [PSCustomObject]@{
-                Start = $_.Matches.Groups[1].Value
-                End = $_.Matches.Groups[2].Value
+            if ($_.Matches.Groups.Count -gt 1) {
+                [PSCustomObject]@{
+                    Start = $_.Matches.Groups[1].Value
+                    End = $_.Matches.Groups[2].Value
+                }
+            }
+            else {
+                [PSCustomObject]@{
+                    Start = $_.Matches.Groups[1].Value
+                    End = $null
+                }
             }
         }
         if ($Dates.Length -lt $Times.Length) {
@@ -683,7 +691,7 @@ function Get-JobCanAttendance {
         $Records = Get-AttendanceRecord
         $Records.Keys | Sort-Object | ForEach-Object -Begin { $Result = @() } {
             $Result += [PSCustomObject]@{
-                Date = $Date.ToString('yyyy-MM-dd')
+                Date = $_.ToString('yyyy-MM-dd')
                 Start = $Records[$_].Start
                 End = $Records[$_].End
             }
