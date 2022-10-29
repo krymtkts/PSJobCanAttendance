@@ -49,7 +49,7 @@ Send-JobCanFinishingWork -AditGroupId 10
 
 ### 接続情報の初期化
 
-入力した接続情報は `$env:APPDATA/krymtkts/PSJobCanAttendance/credential` に保存されます。
+入力した接続情報は `$env:LOCALAPPDATA/krymtkts/PSJobCanAttendance/credential` に保存されます。
 パスワードのみ Secure String として保存されます。
 保存された接続情報を初期化するには、以下のコマンドを実行します。
 
