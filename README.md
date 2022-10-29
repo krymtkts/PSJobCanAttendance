@@ -43,8 +43,25 @@ Send-JobCanBeginningWork -AditGroupId 10
 Send-JobCanFinishingWork -AditGroupId 10
 # 出勤・退勤共に二重打刻の防止機能があります
 
-# 時刻以外が同一の編集であれば一括編集できます
+# 時刻だけが異なる編集を一括登録できます
 @(12..16;20..22) | %{get-date "2022-09-$($_) 08:15:00+0900"} | Edit-JobCanAttendances -TimeRecordEvent work_start -AditGroupId 10
+
+# 時刻とイベントがが異なる編集を一括登録できます
+# 以下は、 休んだ日(10 日 と 20 日)と土日を除外した日の出勤と休憩時間を登録する例です。
+1..31 | ? {$_ -notin 10,20 } | % {get-date -Day $_} | ? -Property DayOfWeek -notin 0,6 | % {
+    [PSCustomObject]@{
+        TimeRecordEvent='work_start'
+        RecordTime= Get-Date -Date $_ -Hour 9 -Minute 0 -Second 0
+    }
+    [PSCustomObject]@{
+        TimeRecordEvent='rest_start'
+        RecordTime= Get-Date -Date $_ -Hour 12 -Minute 0 -Second 0
+    }
+    [PSCustomObject]@{
+        TimeRecordEvent='rest_end'
+        RecordTime= Get-Date -Date $_ -Hour 13 -Minute 0 -Second 0
+    }
+} | Edit-JobCanAttendances -AditGroupId 10 -Verbose
 ```
 
 ### 接続情報の初期化
