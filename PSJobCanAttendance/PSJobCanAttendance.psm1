@@ -262,34 +262,24 @@ function Find-AttendanceRecord {
 
     process {
         $Lines = $Content -split 'jbc-text-reset' -split 'tfoot'
-        $Match = $Lines | Select-String -Pattern 'year=(?<yyyy>\d{4})&month=(?<mm>\d{1,2})&day=(?<dd>\d{1,2})".+?</a></td><td></td>'
-        $Dates = $Match | ForEach-Object {
-            Get-Date -Year $_.Matches.Groups[1].Value -Month $_.Matches.Groups[2].Value -Day $_.Matches.Groups[3].Value -Hour 0 -Minute 0 -Second 0
-        }
-        $Match = $Lines | Where-Object { $_ -notmatch 'jbc-table-footer' } | Select-String -Pattern '<td>(?<start>\d{2}:\d{2})</td><td>(?<end>\d{2}:\d{2})?</td>'
-        $Times = $Match | ForEach-Object {
-            if ($_.Matches.Groups.Count -gt 1) {
-                [PSCustomObject]@{
-                    Start = $_.Matches.Groups[1].Value
-                    End = $_.Matches.Groups[2].Value
-                }
-            }
-            else {
-                [PSCustomObject]@{
-                    Start = $_.Matches.Groups[1].Value
-                    End = $null
-                }
-            }
-        }
-        if ($Dates.Length -lt $Times.Length) {
-            Write-Error "Incorrect scraping. date count=$($Dates.Length) time count=$($Times.Length)"
-            return
-        }
+        $Match = $Lines | Select-String -Pattern 'year=(?<yyyy>\d{4})&month=(?<mm>\d{1,2})&day=(?<dd>\d{1,2})".+?</a></td><td></td><td>.*?</td>(<td>(?<start>\d{2}:\d{2})?</td><td>(?<end>\d{2}:\d{2})?</td>){0,1}.*?<div data-toggle="tooltip".+?>(<a.+?><font.+?>(?<status>\w)){0,1}'
         $Result = @{}
-        if ($Times.Length -gt 0) {
-            0..($Times.Length) | ForEach-Object {
-                $Result.Add($Dates[$_], $Times[$_])
+        $Match | ForEach-Object {
+            $mg = $_.Matches.Groups
+            $Year , $Month , $Day , $Start , $End , $Status = @(
+                'yyyy', 'mm', 'dd', 'start', 'end', 'status'
+            ) | ForEach-Object {
+                $mg | Where-Object -Property name -EQ $_ | Select-Object -ExpandProperty Value
             }
+            @($Year , $Month , $Day , $Start , $End , $Status) | Format-List | Out-String | Write-Host
+            $Record = [PSCustomObject]@{
+                Date = Get-Date -Year $Year -Month $Month -Day $Day -Hour 0 -Minute 0 -Second 0
+                Start = $Start
+                End = $End
+                Status = $Status
+            }
+            $Record | Format-List | Out-String | Write-Host
+            $Result.Add($Record.Date, $Record)
         }
         return $Result
     }
@@ -310,9 +300,6 @@ function Get-AttendanceRecord {
     begin {
         Write-Verbose ($script:MySession | Out-String)
         Write-Verbose ($script:JCSession | Out-String)
-        if (-not $Date) {
-            $Date = Get-Date
-        }
     }
 
     process {
@@ -703,7 +690,6 @@ function Get-JobCanAttendance {
             Position = 0,
             ValueFromPipeline
         )]
-        [ValidateNotNullOrEmpty()]
         [DateTime]
         $Date
     )
@@ -712,6 +698,9 @@ function Get-JobCanAttendance {
         Write-Host 'try to get attendances.'
         Restore-JobCanAuthentication
         Connect-JobCanCloudAttendance
+        if (-not $Date) {
+            $Date = Get-Date
+        }
     }
 
     process {
@@ -722,6 +711,7 @@ function Get-JobCanAttendance {
                 Date = $_.ToString('yyyy-MM-dd')
                 Start = $Records[$_].Start
                 End = $Records[$_].End
+                Status = $Records[$_].Status
             }
         } -End { $Result }
     }
