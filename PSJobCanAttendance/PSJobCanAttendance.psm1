@@ -261,7 +261,7 @@ function Find-AttendanceRecord {
     )
 
     process {
-        $Lines = $Content -split 'jbc-text-reset'
+        $Lines = $Content -split 'jbc-text-reset' -split 'tfoot'
         $Match = $Lines | Select-String -Pattern 'year=(?<yyyy>\d{4})&month=(?<mm>\d{1,2})&day=(?<dd>\d{1,2})".+?</a></td><td></td>'
         $Dates = $Match | ForEach-Object {
             Get-Date -Year $_.Matches.Groups[1].Value -Month $_.Matches.Groups[2].Value -Day $_.Matches.Groups[3].Value -Hour 0 -Minute 0 -Second 0
