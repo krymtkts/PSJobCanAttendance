@@ -24,6 +24,7 @@ PowerShell v7 でのみ動作確認済みです。
 
 - 出勤・退勤の打刻
 - 打刻修正
+- 勤怠実績の一覧
 
 ## 使い方
 
@@ -37,6 +38,10 @@ Set-JobCanOtpProvider -otpProvider {op item get $itemName --otp}
 
 # 当月の勤怠実績を一覧します
 Get-JobCanAttendance
+# 指定した年月の勤怠実績を一覧します(日は無視されます)
+Get-JobCanAttendance -Date (Get-Date '2022-08-01')
+7,8 | % {Get-Date -Month $_} | Get-JobCanAttendance
+
 # 出勤します
 Send-JobCanBeginningWork -AditGroupId 10
 # 退勤します
@@ -44,11 +49,11 @@ Send-JobCanFinishingWork -AditGroupId 10
 # 出勤・退勤共に二重打刻の防止機能があります
 
 # 時刻だけが異なる編集を一括登録できます
-@(12..16;20..22) | %{get-date "2022-09-$($_) 08:15:00+0900"} | Edit-JobCanAttendances -TimeRecordEvent work_start -AditGroupId 10
+@(12..16;20..22) | %{Get-Date "2022-09-$($_) 08:15:00+0900"} | Edit-JobCanAttendances -TimeRecordEvent work_start -AditGroupId 10
 
 # 時刻とイベントがが異なる編集を一括登録できます
 # 以下は、 休んだ日(10 日 と 20 日)と土日を除外した日の出勤と休憩時間を登録する例です。
-1..31 | ? {$_ -notin 10,20 } | % {get-date -Day $_} | ? -Property DayOfWeek -notin 0,6 | % {
+1..31 | ? {$_ -notin 10,20 } | % {Get-Date -Day $_} | ? -Property DayOfWeek -notin 0,6 | % {
     [PSCustomObject]@{
         TimeRecordEvent='work_start'
         RecordTime= Get-Date -Date $_ -Hour 9 -Minute 0 -Second 0
@@ -79,4 +84,3 @@ Clear-JobCanAuthentication
 
 - 実績の削除
 - グループが 1 つの場合に group_id の入力をなくす
-- 当月以外の勤怠実績の一覧
