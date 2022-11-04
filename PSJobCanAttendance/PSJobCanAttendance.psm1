@@ -298,15 +298,26 @@ function Find-AttendanceRecord {
 function Get-AttendanceRecord {
     [CmdletBinding()]
     param (
+        [Parameter(
+            Position = 0,
+            ValueFromPipeline
+        )]
+        [ValidateNotNullOrEmpty()]
+        [DateTime]
+        $Date
     )
 
     begin {
         Write-Verbose ($script:MySession | Out-String)
         Write-Verbose ($script:JCSession | Out-String)
+        if (-not $Date) {
+            $Date = Get-Date
+        }
     }
 
     process {
-        $MyPage = 'https://ssl.jobcan.jp/employee/attendance'
+        $Year, $Month = $Date.Year, $Date.Month.ToString('00')
+        $MyPage = "https://ssl.jobcan.jp/employee/attendance?year=$Year&month=$Month"
         $Params = @{
             Method = 'Get'
             Uri = $MyPage
@@ -688,16 +699,23 @@ function Get-JobCanAttendance {
     [CmdletBinding()]
     [OutputType([PSCustomObject[]])]
     param (
+        [Parameter(
+            Position = 0,
+            ValueFromPipeline
+        )]
+        [ValidateNotNullOrEmpty()]
+        [DateTime]
+        $Date
     )
 
     begin {
         Write-Host 'try to get attendances.'
+        Restore-JobCanAuthentication
+        Connect-JobCanCloudAttendance
     }
 
     process {
-        Restore-JobCanAuthentication
-        Connect-JobCanCloudAttendance
-        $Records = Get-AttendanceRecord
+        $Records = Get-AttendanceRecord -Date $Date
         $Result = @()
         $Records.Keys | Sort-Object | ForEach-Object {
             $Result += [PSCustomObject]@{
