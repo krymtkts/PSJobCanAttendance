@@ -76,7 +76,7 @@
         'Clear-JobCanOtpProvider',
         'Send-JobCanBeginningWork',
         'Send-JobCanFinishingWork',
-        'Edit-JobCanAttendances',
+        'Edit-JobCanAttendance',
         'Get-JobCanAttendance'
     )
 

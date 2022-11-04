@@ -131,16 +131,20 @@ function Get-RecordTime {
 }
 
 function Set-JobCanOtpProvider {
+    [CmdletBinding(SupportsShouldProcess)]
     param(
         [Parameter(Mandatory)]
         [ValidateNotNullOrEmpty()]
         [scriptblock]
         $OtpProvider
     )
-    $script:OtpProvider = $OtpProvider
+    if ($PSCmdlet.ShouldProcess("set otp provider. '$OtpProvider'")) {
+        $script:OtpProvider = $OtpProvider
+    }
 }
 
 function Clear-JobCanOtpProvider {
+    [CmdletBinding()]
     param()
     $script:OtpProvider = $null
 }
@@ -631,7 +635,7 @@ function Send-JobCanFinishingRest {
     }
 }
 
-function Edit-JobCanAttendances {
+function Edit-JobCanAttendance {
     [CmdletBinding()]
     param (
         [Parameter(Mandatory,
@@ -694,7 +698,8 @@ function Get-JobCanAttendance {
         Restore-JobCanAuthentication
         Connect-JobCanCloudAttendance
         $Records = Get-AttendanceRecord
-        $Records.Keys | Sort-Object | ForEach-Object -Begin { $Result = @() } {
+        $Result = @()
+        $Records.Keys | Sort-Object | ForEach-Object {
             $Result += [PSCustomObject]@{
                 Date = $_.ToString('yyyy-MM-dd')
                 Start = $Records[$_].Start
