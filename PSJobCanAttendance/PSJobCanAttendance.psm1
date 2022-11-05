@@ -271,14 +271,12 @@ function Find-AttendanceRecord {
             ) | ForEach-Object {
                 $mg | Where-Object -Property name -EQ $_ | Select-Object -ExpandProperty Value
             }
-            @($Year , $Month , $Day , $Start , $End , $Status) | Format-List | Out-String | Write-Host
             $Record = [PSCustomObject]@{
                 Date = Get-Date -Year $Year -Month $Month -Day $Day -Hour 0 -Minute 0 -Second 0
                 Start = $Start
                 End = $End
                 Status = $Status
             }
-            $Record | Format-List | Out-String | Write-Host
             $Result.Add($Record.Date, $Record)
         }
         return $Result
