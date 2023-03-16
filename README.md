@@ -14,6 +14,18 @@ PowerShell v7 でのみ動作確認済みです。
 
 ## インストール
 
+### PowerShell Gallery から入手する
+
+[PowerShell Gallery | PSJobCanAttendance](https://www.powershellgallery.com/packages/PSJobCanAttendance/)
+
+```powershell
+# PowerShellGet 2.x
+Install-Module -Name PSJobCanAttendance
+
+# PowerShellGet 3.0
+Install-PSResource -Name PSJobCanAttendance
+```
+
 ### `Module` フォルダに配置する
 
 この repository を PowerShell の `Module` フォルダ配下に clone してください。
@@ -52,8 +64,8 @@ Send-JobCanFinishingWork -AditGroupId 10
 @(12..16;20..22) | %{Get-Date "2022-09-$($_) 08:15:00+0900"} | Edit-JobCanAttendances -TimeRecordEvent work_start -AditGroupId 10
 
 # 時刻とイベントがが異なる編集を一括登録できます
-# 以下は、 休んだ日(10 日 と 20 日)と土日を除外した日の出勤と休憩時間を登録する例です。
-1..31 | ? {$_ -notin 10,20 } | % {Get-Date -Day $_} | ? -Property DayOfWeek -notin 0,6 | % {
+# 以下は、 3 月の休んだ日(10 日 と 20 日)と土日を除外した日の出勤と休憩時間を登録する例です。
+1..31 | ? {$_ -notin 10,20 } | % {Get-Date -Month 3 -Day $_} | ? -Property DayOfWeek -notin 0,6 | % {
     [PSCustomObject]@{
         TimeRecordEvent='work_start'
         RecordTime= Get-Date -Date $_ -Hour 9 -Minute 0 -Second 0
