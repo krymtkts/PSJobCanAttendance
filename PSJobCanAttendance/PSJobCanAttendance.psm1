@@ -292,7 +292,7 @@ function Get-AttendanceRecord {
         )]
         [ValidateNotNullOrEmpty()]
         [DateTime]
-        $Date
+        $Date = (Get-Date)
     )
 
     begin {
