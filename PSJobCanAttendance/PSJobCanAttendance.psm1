@@ -119,16 +119,6 @@ function Find-AuthToken {
     }
 }
 
-function Get-RecordTime {
-    process {
-        $Now = Get-Date -AsUTC
-        [PSCustomObject]@{
-            Raw = $Now
-            Date = $Now.ToString('MM/dd/yyyy')
-            RecordTime = $Now.ToString('yyyy-MM-ddTHH:mm:ss.fffZ')
-        }
-    }
-}
 
 function Set-JobCanOtpProvider {
     [CmdletBinding(SupportsShouldProcess)]
@@ -390,7 +380,6 @@ function Send-TimeRecord {
             throw
         }
         $TimeRecorder = 'https://ssl.jobcan.jp/employee/index/adit'
-        $Now = Get-RecordTime
 
         $Body = @{
             'is_yakin' = $NightShift
