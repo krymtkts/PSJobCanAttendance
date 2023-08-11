@@ -93,7 +93,7 @@ function Get-DateForDisplay {
         $Date = (Get-Date)
     )
 
-    $Date.ToLocalTime().ToString('yyyy-MM-dd(ddd) HH:mm:ss K', $script:LocaleEN)
+    $Date.ToString('yyyy-MM-dd(ddd) HH:mm:ss K', $script:LocaleEN)
 }
 
 
@@ -119,16 +119,6 @@ function Find-AuthToken {
     }
 }
 
-function Get-RecordTime {
-    process {
-        $Now = Get-Date -AsUTC
-        [PSCustomObject]@{
-            Raw = $Now
-            Date = $Now.ToString('MM/dd/yyyy')
-            RecordTime = $Now.ToString('yyyy-MM-ddTHH:mm:ss.fffZ')
-        }
-    }
-}
 
 function Set-JobCanOtpProvider {
     [CmdletBinding(SupportsShouldProcess)]
@@ -292,7 +282,7 @@ function Get-AttendanceRecord {
         )]
         [ValidateNotNullOrEmpty()]
         [DateTime]
-        $Date
+        $Date = (Get-Date)
     )
 
     begin {
@@ -311,7 +301,7 @@ function Get-AttendanceRecord {
         Write-Verbose ($Params | Out-String)
         try {
             $Res = Invoke-WebRequest @Params
-            Write-Host "Succeed to get content. $(Get-DateForDisplay (Get-Date))"
+            Write-Host "Succeed to get content. $(Get-DateForDisplay)"
             if (!$Res) {
                 Write-Error "Failed to get content from  $Attendances."
                 return
@@ -390,7 +380,6 @@ function Send-TimeRecord {
             throw
         }
         $TimeRecorder = 'https://ssl.jobcan.jp/employee/index/adit'
-        $Now = Get-RecordTime
 
         $Body = @{
             'is_yakin' = $NightShift
@@ -410,7 +399,7 @@ function Send-TimeRecord {
         Write-Verbose ($Body | Out-String)
         try {
             $Res = Invoke-WebRequest @LoginParams
-            Write-Host "Succeed to send time record. $TimeRecordEvent $(Get-DateForDisplay $Now.Raw)"
+            Write-Host "Succeed to send time record. $TimeRecordEvent $(Get-DateForDisplay)"
         }
         catch {
             Write-Error "Failed to send time record. $TimeRecorder. $TimeRecordEvent"
