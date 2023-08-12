@@ -18,11 +18,11 @@ Write-Host "Check OK."
 switch ($Mode) {
     'Publish' {
         Write-Host "Publishing module: $ModuleName"
-        Publish-Module -Path $ArtifactPath -NugetAPIKey $ApiKey -Verbose
+        Publish-PSResource -Path $ArtifactPath -ApiKey $ApiKey -Verbose
     }
     'DryRun' {
         Write-Host "[DRY-RUN]Publishing module: $ModuleName"
-        Publish-Module -Path $ArtifactPath -NugetAPIKey $ApiKey -Verbose -WhatIf
+        Publish-PSResource -Path $ArtifactPath -ApiKey $ApiKey -Verbose -WhatIf
     }
 }
 if ($?) {
