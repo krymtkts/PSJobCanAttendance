@@ -25,9 +25,11 @@ $Params = @{
     WhatIf = switch ($Mode) {
         'Publish' {
             Write-Host "Publishing module: $ModuleName"
+            $false
         }
         'DryRun' {
             Write-Host "[DRY-RUN]Publishing module: $ModuleName"
+            $true
         }
     }
 }
