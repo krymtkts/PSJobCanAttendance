@@ -735,3 +735,36 @@ function Get-DaysInMonth {
         }
     }
 }
+
+function New-JobCanAttendanceRecord {
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory,
+            ValueFromPipelineByPropertyName)]
+        [ValidateSet('work_start', 'work_end', 'rest_start', 'rest_end')]
+        [string]
+        $TimeRecordEvent,
+        [Parameter(Mandatory,
+            Position = 0,
+            ValueFromPipeline,
+            ValueFromPipelineByPropertyName
+        )]
+        [ValidateNotNull()]
+        [datetime]
+        $Date,
+        [Parameter()]
+        [ValidateNotNull()]
+        [int]
+        $Hour,
+        [Parameter()]
+        [ValidateNotNull()]
+        [int]
+        $Minute
+    )
+    process {
+        [PSCustomObject]@{
+            TimeRecordEvent = $TimeRecordEvent
+            RecordTime = Get-Date -Date $Date -Hour ($Hour ? $Hour : $Date.Hour) -Minute ($Minute ? $Minute : $Date.Minute) -Second 0
+        }
+    }
+}
