@@ -14,6 +14,9 @@ PowerShell v7 でのみ動作確認済みです。
 
 ## インストール
 
+PowerShell Gallery から入手するか、 repository を clone するなどして直に手に入れることができます。
+推奨は PowerShell Gallery です。
+
 ### PowerShell Gallery から入手する
 
 [PowerShell Gallery | PSJobCanAttendance](https://www.powershellgallery.com/packages/PSJobCanAttendance/)
@@ -51,7 +54,8 @@ Set-JobCanOtpProvider -otpProvider {op item get $itemName --otp}
 # 当月の勤怠実績を一覧します
 Get-JobCanAttendance
 # 指定した年月の勤怠実績を一覧します(日は無視されます)
-Get-JobCanAttendance -Date (Get-Date '2022-08-01')
+# -Date option は datetime なので日付文字列からの暗黙的な変換を期待でき簡素に記述できます
+Get-JobCanAttendance -Date '2022-08-01'
 7,8 | % {Get-Date -Month $_} | Get-JobCanAttendance
 
 # 出勤します
@@ -76,7 +80,7 @@ $ThisMonth | Get-DaysInMonth -ExcludeDates $Holidays | ForEach-Object {
     $_ | New-JobCanAttendanceRecord -TimeRecordEvent work_start -Hour 8 -Minute 0
     $_ | New-JobCanAttendanceRecord -TimeRecordEvent rest_start -Hour 12 -Minute 0
     $_ | New-JobCanAttendanceRecord -TimeRecordEvent rest_end -Hour 13 -Minute 0
-} | Edit-JobCanAttendances -AditGroupId 10 -Verbose
+} | Edit-JobCanAttendance -AditGroupId 10 -Verbose
 ```
 
 ### 接続情報の初期化
