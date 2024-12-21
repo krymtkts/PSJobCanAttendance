@@ -21,7 +21,7 @@
     )
 
     # ID used to uniquely identify this module
-    GUID = '3ce37078-db1c-4025-a0b7-8b55e4a9e3d5'
+    GUID = 'de21491c-1737-49da-b24c-4e1158c62c97'
 
     # Author of this module
     Author = 'Takatoshi Kuriyama'
