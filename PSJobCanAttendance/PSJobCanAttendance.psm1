@@ -1,4 +1,4 @@
-# The location of the file that we'll store the Access Token SecureString
+﻿# The location of the file that we'll store the Access Token SecureString
 # which cannot/should not roam with the user.
 [string] $script:JCCredentialPath = [System.IO.Path]::Combine(
     [System.Environment]::GetFolderPath('LocalApplicationData'),
@@ -780,9 +780,12 @@ function New-JobCanAttendanceRecord {
         $Minute
     )
     process {
+        # NOTE: use redundant syntax to support Windows PowerShell.
+        $h = if ($Hour -ne $null) { $Hour } else { $Date.Hour }
+        $m = if ($Minute -ne $null) { $Minute } else { $Date.Minute }
         [PSCustomObject]@{
             TimeRecordEvent = $TimeRecordEvent
-            RecordTime = Get-Date -Date $Date -Hour ($Hour ? $Hour : $Date.Hour) -Minute ($Minute ? $Minute : $Date.Minute) -Second 0
+            RecordTime = Get-Date -Date $Date -Hour $h -Minute $m -Second 0
         }
     }
 }
