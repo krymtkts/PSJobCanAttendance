@@ -1,4 +1,4 @@
-# The location of the file that we'll store the Access Token SecureString
+﻿# The location of the file that we'll store the Access Token SecureString
 # which cannot/should not roam with the user.
 [string] $script:JCCredentialPath = [System.IO.Path]::Combine(
     [System.Environment]::GetFolderPath('LocalApplicationData'),
