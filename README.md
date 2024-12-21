@@ -14,6 +14,9 @@ PowerShell v7 でのみ動作確認済みです。
 
 ## インストール
 
+PowerShell Gallery から入手するか、 repository を clone するなどして直に手に入れることができます。
+推奨は PowerShell Gallery です。
+
 ### PowerShell Gallery から入手する
 
 [PowerShell Gallery | PSJobCanAttendance](https://www.powershellgallery.com/packages/PSJobCanAttendance/)
@@ -51,7 +54,8 @@ Set-JobCanOtpProvider -otpProvider {op item get $itemName --otp}
 # 当月の勤怠実績を一覧します
 Get-JobCanAttendance
 # 指定した年月の勤怠実績を一覧します(日は無視されます)
-Get-JobCanAttendance -Date (Get-Date '2022-08-01')
+# -Date option は datetime なので日付文字列からの暗黙的な変換を期待でき簡素に記述できます
+Get-JobCanAttendance -Date '2022-08-01'
 7,8 | % {Get-Date -Month $_} | Get-JobCanAttendance
 
 # 出勤します
@@ -64,21 +68,19 @@ Send-JobCanFinishingWork -AditGroupId 10
 @(12..16;20..22) | %{Get-Date "2022-09-$($_) 08:15:00+0900"} | Edit-JobCanAttendances -TimeRecordEvent work_start -AditGroupId 10
 
 # 時刻とイベントがが異なる編集を一括登録できます
-# 以下は、 3 月の休んだ日(10 日 と 20 日)と土日を除外した日の出勤と休憩時間を登録する例です。
-1..31 | ? {$_ -notin 10,20 } | % {Get-Date -Month 3 -Day $_} | ? -Property DayOfWeek -notin 0,6 | % {
-    [PSCustomObject]@{
-        TimeRecordEvent='work_start'
-        RecordTime= Get-Date -Date $_ -Hour 9 -Minute 0 -Second 0
-    }
-    [PSCustomObject]@{
-        TimeRecordEvent='rest_start'
-        RecordTime= Get-Date -Date $_ -Hour 12 -Minute 0 -Second 0
-    }
-    [PSCustomObject]@{
-        TimeRecordEvent='rest_end'
-        RecordTime= Get-Date -Date $_ -Hour 13 -Minute 0 -Second 0
-    }
-} | Edit-JobCanAttendances -AditGroupId 10 -Verbose
+# 以下は、 3 月の休んだ日(10 日 と 20 日)と土日を除外した日の出勤と休憩時間を登録する例です
+# 提供されている utility function を組み合わせると実装が容易になります
+$ThisMonth = Get-Date '2024-12-01'
+$Holidays = @(
+    '2024-12-10'
+    '2024-12-30'
+) | Get-Date
+# 出勤と休憩を記録する
+$ThisMonth | Get-DaysInMonth -ExcludeDates $Holidays | ForEach-Object {
+    $_ | New-JobCanAttendanceRecord -TimeRecordEvent work_start -Hour 8 -Minute 0
+    $_ | New-JobCanAttendanceRecord -TimeRecordEvent rest_start -Hour 12 -Minute 0
+    $_ | New-JobCanAttendanceRecord -TimeRecordEvent rest_end -Hour 13 -Minute 0
+} | Edit-JobCanAttendance -AditGroupId 10 -Verbose
 ```
 
 ### 接続情報の初期化

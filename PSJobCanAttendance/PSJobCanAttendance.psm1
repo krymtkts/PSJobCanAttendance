@@ -703,3 +703,68 @@ function Get-JobCanAttendance {
         } -End { $Result }
     }
 }
+
+# NOTE: Utility functions.
+
+function Get-DaysInMonth {
+    [CmdletBinding()]
+    param(
+        [Parameter(
+            Position = 0,
+            ValueFromPipeline
+        )]
+        [ValidateNotNull()]
+        [datetime]
+        $Date = (Get-Date),
+        [Parameter()]
+        [ValidateNotNull()]
+        [datetime[]]$ExcludeDates = @(),
+        [Parameter()]
+        [ValidateNotNull()]
+        [int[]]$ExcludeWeekDays = @(0, 6),
+        [Parameter()]
+        [ValidateNotNull()]
+        [System.Globalization.Calendar]$Calendar = [System.Globalization.CultureInfo]::InvariantCulture.Calendar
+    )
+    process {
+        $daysInMonth = $Calendar.GetDaysInMonth($Date.Year, $Date.Month)
+        1..$daysInMonth | ForEach-Object {
+            [datetime]::new($Date.Year, $Date.Month, $_)
+        } | Where-Object {
+            ($_.Date -NotIn $ExcludeDates) -and ($_.DayOfWeek -NotIn $ExcludeWeekDays)
+        }
+    }
+}
+
+function New-JobCanAttendanceRecord {
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory,
+            ValueFromPipelineByPropertyName)]
+        [ValidateSet('work_start', 'work_end', 'rest_start', 'rest_end')]
+        [string]
+        $TimeRecordEvent,
+        [Parameter(Mandatory,
+            Position = 0,
+            ValueFromPipeline,
+            ValueFromPipelineByPropertyName
+        )]
+        [ValidateNotNull()]
+        [datetime]
+        $Date,
+        [Parameter()]
+        [ValidateNotNull()]
+        [int]
+        $Hour,
+        [Parameter()]
+        [ValidateNotNull()]
+        [int]
+        $Minute
+    )
+    process {
+        [PSCustomObject]@{
+            TimeRecordEvent = $TimeRecordEvent
+            RecordTime = Get-Date -Date $Date -Hour ($Hour ? $Hour : $Date.Hour) -Minute ($Minute ? $Minute : $Date.Minute) -Second 0
+        }
+    }
+}
