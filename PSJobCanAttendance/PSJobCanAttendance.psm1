@@ -754,8 +754,11 @@ function Get-DaysInMonth {
     }
 }
 
+#pragma warning disable PSUseShouldProcessForStateChangingFunctions
 function New-JobCanAttendanceRecord {
     [CmdletBinding()]
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseShouldProcessForStateChangingFunctions', '',
+        Justification = 'No state changing operation.')]
     param (
         [Parameter(Mandatory,
             ValueFromPipelineByPropertyName)]
@@ -789,3 +792,4 @@ function New-JobCanAttendanceRecord {
         }
     }
 }
+#pragma warning restore PSUseShouldProcessForStateChangingFunctions
