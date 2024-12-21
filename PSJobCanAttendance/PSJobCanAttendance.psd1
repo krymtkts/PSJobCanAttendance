@@ -15,7 +15,10 @@
     ModuleVersion = '1.0.2'
 
     # Supported PSEditions
-    # CompatiblePSEditions = @()
+    CompatiblePSEditions = @(
+        'Core'
+        'Desktop'
+    )
 
     # ID used to uniquely identify this module
     GUID = '3ce37078-db1c-4025-a0b7-8b55e4a9e3d5'
@@ -33,7 +36,7 @@
     Description = 'Simple automation for JobCan Attendance.'
 
     # Minimum version of the PowerShell engine required by this module
-    # PowerShellVersion = ''
+    PowerShellVersion = '5.1'
 
     # Name of the PowerShell host required by this module
     # PowerShellHostName = ''
