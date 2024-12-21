@@ -1,4 +1,4 @@
-﻿# The location of the file that we'll store the Access Token SecureString
+# The location of the file that we'll store the Access Token SecureString
 # which cannot/should not roam with the user.
 [string] $script:JCCredentialPath = [System.IO.Path]::Combine(
     [System.Environment]::GetFolderPath('LocalApplicationData'),
@@ -139,6 +139,24 @@ function Clear-JobCanOtpProvider {
     $script:OtpProvider = $null
 }
 
+function ConvertFrom-SecureStringAsPlainText {
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory,
+            ValueFromPipeline)]
+        [SecureString]
+        $SecureString
+    )
+    if ((Get-Command ConvertFrom-SecureString).Parameters['AsPlainText']) {
+        return ConvertFrom-SecureString -SecureString $SecureString -AsPlainText
+    }
+    # NOTE: This is a workaround for Windows PowerShell.
+    $BSTR = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($SecureString)
+    $PlainText = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($BSTR)
+    [System.Runtime.InteropServices.Marshal]::ZeroFreeBSTR($BSTR)
+    return $PlainText
+}
+
 function Connect-JobCanCloudAttendance {
     [CmdletBinding()]
     param(
@@ -178,7 +196,7 @@ function Connect-JobCanCloudAttendance {
             Body = @{
                 'authenticity_token' = $AuthToken
                 'user[email]' = $script:JCCredential.EmailOrStaffCode
-                'user[password]' = $script:JCCredential.Password | ConvertFrom-SecureString -AsPlainText
+                'user[password]' = $script:JCCredential.Password | ConvertFrom-SecureStringAsPlainText
                 'app_key' = 'atd'
                 'commit' = 'Login'
             }
