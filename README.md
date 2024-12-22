@@ -1,6 +1,7 @@
 # PSJobCanAttendance
 
-[![PowerShell Gallery](https://img.shields.io/powershellgallery/dt/PSJobCanAttendance?style=flat-square)](https://www.powershellgallery.com/packages/PSJobCanAttendance)
+[![PowerShell Gallery](https://img.shields.io/powershellgallery/v/PSJobCanAttendance)](https://www.powershellgallery.com/packages/PSJobCanAttendance)
+[![PowerShell Gallery](https://img.shields.io/powershellgallery/dt/PSJobCanAttendance)](https://www.powershellgallery.com/packages/PSJobCanAttendance)
 
 PSJobCanAttendance は、ジョブカン勤怠管理を CLI で操作するためのツールです。
 
