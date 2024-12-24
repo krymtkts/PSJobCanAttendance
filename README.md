@@ -68,7 +68,7 @@ Send-JobCanFinishingWork -AditGroupId 10
 # 時刻だけが異なる編集を一括登録できます
 @(12..16;20..22) | %{Get-Date "2022-09-$($_) 08:15:00+0900"} | Edit-JobCanAttendances -TimeRecordEvent work_start -AditGroupId 10
 
-# 時刻とイベントがが異なる編集を一括登録できます
+# 時刻とイベントが異なる編集を一括登録できます
 # 以下は、 3 月の休んだ日(10 日 と 20 日)と土日を除外した日の出勤と休憩時間を登録する例です
 # 提供されている utility function を組み合わせると実装が容易になります
 $ThisMonth = Get-Date '2024-12-01'
