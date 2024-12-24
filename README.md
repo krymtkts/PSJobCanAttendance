@@ -87,7 +87,7 @@ $ThisMonth | Get-DaysInMonth -ExcludeDates $Holidays | ForEach-Object {
 ### 接続情報の初期化
 
 入力した接続情報は `$env:LOCALAPPDATA/krymtkts/PSJobCanAttendance/credential` に保存されます。
-パスワードのみ Secure String として保存されます。
+パスワードのみ [SecureString](https://learn.microsoft.com/ja-jp/powershell/module/microsoft.powershell.security/convertto-securestring?view=powershell-7.4#1) として保存されます。
 保存された接続情報を初期化するには、以下のコマンドを実行します。
 
 ```powershell
