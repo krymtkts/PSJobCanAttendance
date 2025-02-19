@@ -773,11 +773,15 @@ function New-JobCanAttendanceRecord {
         [ValidateNotNull()]
         [datetime]
         $Date,
-        [Parameter()]
+        [Parameter(
+            ValueFromPipelineByPropertyName
+        )]
         [ValidateNotNull()]
         [int]
         $Hour,
-        [Parameter()]
+        [Parameter(
+            ValueFromPipelineByPropertyName
+        )]
         [ValidateNotNull()]
         [int]
         $Minute
