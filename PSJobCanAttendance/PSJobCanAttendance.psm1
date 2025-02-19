@@ -426,6 +426,52 @@ function Send-TimeRecord {
     }
 }
 
+function ConvertTo-30HourSystemDateTime() {
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory,
+            ValueFromPipelineByPropertyName)]
+        [ValidateSet('work_start', 'work_end', 'rest_start', 'rest_end')]
+        $TimeRecordEvent,
+        [Parameter(Mandatory,
+            Position = 0,
+            ValueFromPipeline,
+            ValueFromPipelineByPropertyName
+        )]
+        [ValidateNotNullOrEmpty()]
+        [DateTime]
+        $RecordTime
+    )
+    process {
+        # NOTE: JobCan uses a 30-hour system.
+        # NOTE: However, start times do not require conversion,
+        # NOTE: as converting them would cause logical inconsistencies for shifts starting before 06:00.
+        if ($TimeRecordEvent -eq 'work_start') {
+            [PSCustomObject]@{
+                Year = $RecordTime.Year
+                Month = $RecordTime.Month
+                Day = $RecordTime.Day
+                Time = $RecordTime.ToString('HHmm')
+            }
+        }
+        else {
+            $reqDate = $RecordTime
+            $reqHour = $RecordTime.Hour
+            if ($RecordTime.Hour -lt 6) {
+                $reqDate = $RecordTime.AddDays(-1)
+                $reqHour += 24
+            }
+
+            [PSCustomObject]@{
+                Year = $reqDate.Year
+                Month = $reqDate.Month
+                Day = $reqDate.Day
+                Time = ('{0:D2}{1:D2}' -f $reqHour, $RecordTime.Minute)
+            }
+        }
+    }
+}
+
 function Edit-TimeRecord {
     [CmdletBinding()]
     param (
@@ -481,16 +527,17 @@ function Edit-TimeRecord {
 
     process {
         $TimeRecorder = 'https://ssl.jobcan.jp/employee/adit/insert'
+        $recTime = ConvertTo-30HourSystemDateTime -TimeRecordEvent $TimeRecordEvent -RecordTime $RecordTime
         $Body = @{
             'token' = $Token
-            'year' = $RecordTime.Year
-            'month' = $RecordTime.Month
-            'day' = $RecordTime.Day
+            'year' = $recTime.Year
+            'month' = $recTime.Month
+            'day' = $recTime.Day
             'client_id' = $ClientId
             'employee_id' = $EmployeeId
             'adit_item' = $TimeRecordEvent
             'delete_minutes' = ''
-            'time' = $RecordTime.ToString('HHmm')
+            'time' = $recTime.Time
             'group_id' = $AditGroupId
             'notice' = $Notice
             '_' = '' # ?
@@ -505,7 +552,7 @@ function Edit-TimeRecord {
         Write-Verbose ($Body | Out-String)
         try {
             $Res = Invoke-WebRequest @RecordParams
-            Write-Host "Succeed to send time record. $TimeRecordEvent $(Get-DateForDisplay $RecordTime)"
+            Write-Host "Succeed to send time record. $TimeRecordEvent $($recTime.Year)-$($recTime.Month)-$($recTime.Day) $($recTime.Time)"
         }
         catch {
             Write-Error "Failed to send time record. $TimeRecorder. $TimeRecordEvent"
