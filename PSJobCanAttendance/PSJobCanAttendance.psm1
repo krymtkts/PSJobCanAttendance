@@ -443,9 +443,10 @@ function ConvertTo-30HourSystemDateTime() {
         $RecordTime
     )
     process {
-        # NOTE: JobCan uses a 30-hour system.
-        # NOTE: However, start times do not require conversion,
-        # NOTE: as converting them would cause logical inconsistencies for shifts starting before 06:00.
+        # NOTE: JobCan uses a 48-hour system.
+        # NOTE: However, PSJobCanAttendance converts to a 30-hour system for human-health and simplicity.
+        # NOTE: Also, start times do not require conversion.
+        # NOTE: Converting shifts that start before 06:00 would cause logical inconsistencies.
         if ($TimeRecordEvent -eq 'work_start') {
             [PSCustomObject]@{
                 Year = $RecordTime.Year
