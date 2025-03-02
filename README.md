@@ -82,6 +82,11 @@ $ThisMonth | Get-DaysInMonth -ExcludeDates $Holidays | ForEach-Object {
     $_ | New-JobCanAttendanceRecord -TimeRecordEvent rest_start -Hour 12 -Minute 0
     $_ | New-JobCanAttendanceRecord -TimeRecordEvent rest_end -Hour 13 -Minute 0
 } | Edit-JobCanAttendance -AditGroupId 10 -Verbose
+
+# ジョブカン勤怠管理は日本の商習慣に合わせて 30 時間制どころか 48 時まで入力できます
+# PSJobCanAttendance ではそこまで長時間の入力は現実的にないと想定し、退勤と休憩で 30 時間制への変換をサポートします
+# 例えば 2025-02-28 03:00 の退勤は 2025-02-27 27:00 として記録されます
+'2025-02-28 03:00' | Get-Date | Edit-JobCanAttendance -AditGroupId 10 -TimeRecordEvent work_end
 ```
 
 ### 接続情報の初期化
