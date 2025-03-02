@@ -3,7 +3,7 @@
 [![PowerShell Gallery](https://img.shields.io/powershellgallery/v/PSJobCanAttendance)](https://www.powershellgallery.com/packages/PSJobCanAttendance)
 [![PowerShell Gallery](https://img.shields.io/powershellgallery/dt/PSJobCanAttendance)](https://www.powershellgallery.com/packages/PSJobCanAttendance)
 
-PSJobCanAttendance は、ジョブカン勤怠管理を CLI で操作するためのツールです。
+PSJobCanAttendance は、ジョブカン勤怠管理を CLI で操作するための PowerShell module です。
 
 [利用規約｜ジョブカン勤怠管理](https://jobcan.ne.jp/aup)
 
