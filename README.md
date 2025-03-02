@@ -76,7 +76,7 @@ $Holidays = @(
     '2024-12-10'
     '2024-12-30'
 ) | Get-Date
-# 出勤と休憩を記録する
+# 出勤と休憩を記録します
 $ThisMonth | Get-DaysInMonth -ExcludeDates $Holidays | ForEach-Object {
     $_ | New-JobCanAttendanceRecord -TimeRecordEvent work_start -Hour 8 -Minute 0
     $_ | New-JobCanAttendanceRecord -TimeRecordEvent rest_start -Hour 12 -Minute 0
