@@ -1,0 +1,27 @@
+name: Test module
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Install modules from PSGallery (pwsh)
+        shell: pwsh
+        run: |
+          Set-PSResourceRepository PSGallery -Trusted
+          Install-PSResource Psake,Pester,PSScriptAnalyzer -Quiet -Reinstall -Scope CurrentUser
+      - name: Execute All Tests
+        shell: pwsh
+        run: |
+          Invoke-Psake -taskList TestAll
+          if (-not $psake.build_success) { exit 1 }
