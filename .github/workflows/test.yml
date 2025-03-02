@@ -24,4 +24,4 @@ jobs:
         shell: pwsh
         run: |
           Invoke-Psake -taskList TestAll
-          if {-not $psake.build_success} { exit 1 }
+          if (-not $psake.build_success) { exit 1 }
