@@ -797,7 +797,7 @@ function Get-DaysInMonth {
         1..$daysInMonth | ForEach-Object {
             [datetime]::new($Date.Year, $Date.Month, $_)
         } | Where-Object {
-            ($_.Date -NotIn $ExcludeDates) -and ($_.DayOfWeek -NotIn $ExcludeWeekDays)
+            ($_.Date -notin $ExcludeDates) -and ($_.DayOfWeek -notin $ExcludeWeekDays)
         }
     }
 }
